@@ -12,13 +12,13 @@ class Scoring:
 	
 	def perform_svd(self,data_frame,k):
 		
-		U,S,Vt = svds(data_frame, k = 800)
+		U,S,Vt = svds(data_frame, k)
 		U = pairwise_distances(U, metric='cosine')
 		U = pd.DataFrame(U, index = data_frame.index,\
 						  columns = data_frame.index)
 		return U 
 
-	def get_co_ocurrence(self,dataframe,H):
+	def get_co_occurrence(self,dataframe,H):
 
 		co_occurence_data = dataframe.dot(dataframe.T) # Compute co-occurence of courses amongst users
 		offset = 10**-10       	
@@ -28,13 +28,41 @@ class Scoring:
 
 		return co_occurence_data 
 
+	def generate_dict(self,dataframe):
+		"""Takes in a similarity dataframe and returns a dictionary of top 100 users for each user id"""
+		scoring_dict = {}
+		for index,row in zip(dataframe.index, dataframe.iterrows()): 
+			scoring_dict[index] = []
+			for idx,i in zip(dataframe.index,row[1]):
+				if index != idx :
+					scoring_dict[index].append((idx,i))
+			scoring_dict[index] = sorted(scoring_dict[index], key= itemgetter(1))
+			scoring_dict[index] = scoring_dict[index][:100]
+
+		return scoring_dict
+
+
 	def assessment_score(data_frame):
 				
 		pass
 
-	def interests_score(user_interests):
+	def interests_score(self,user_interests):
 		
-		pass
+		user_interests = pd.pivot_table(user_interests,index = "user_handle",\
+												  columns="interest_tag",values = "date_followed",aggfunc=len)
+		user_interests = user_interests.replace(np.nan,0)
+		user_interests[user_interests != 0 ] = 1
+		
+		#Run svd on the interests_course matrix to get a user similarity matrix
+		user_similarity = self.perform_svd(user_interests,400)
+		interests_co_occurence = self.get_co_occurrence(user_interests, 8)
+		user_similarity = user_similarity.div(interests_co_occurence)	
+		interests_scoring_dict = self.generate_dict(user_similarity)
+
+		with open("../data/processed/interests_scoring_dict.pickle",'wb') as file:
+			pickle.dump(interests_scoring_dict,file, protocol = pickle.HIGHEST_PROTOCOL)
+ 
+
 
 	def course_score(self,user_course_views):
 		
@@ -44,18 +72,12 @@ class Scoring:
 		user_course_views = user_course_views.replace(np.nan,0)
 		user_course_views[user_course_views != 0 ] = 1
 
-		#Run svd on the user_course matrix to get a user similarity matrix
+		#Run svd on the user_course_views matrix to get a user similarity matrix
 		user_similarity = self.perform_svd(user_course_views,800)
-		course_co_occurence = self.get_co_ocurrence(user_course_views,6)
+		course_co_occurence = self.get_co_occurrence(user_course_views,6)
 		user_similarity = user_similarity.div(course_co_occurence)	
-		course_scoring_dict = {}
-		for index,row in zip(user_similarity.index, user_similarity.iterrows()): 
-			course_scoring_dict[index] = []
-			for idx,i in zip(user_similarity.index,row[1]):
-				if index != idx :
-					course_scoring_dict[index].append((idx,i))
-			course_scoring_dict[index] = sorted(course_scoring_dict[index], key= itemgetter(1))
-			course_scoring_dict[index] = course_scoring_dict[index][:100]
+		course_scoring_dict = self.generate_dict(user_similarity)
+
  	
  		#conn  = sqlite3.connect("../data/processed/course_scoring_dict.sqlite")
  		#c = conn.cursor()

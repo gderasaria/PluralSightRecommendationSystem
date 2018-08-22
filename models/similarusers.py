@@ -32,18 +32,26 @@ class SimilarUsers:
 		conn.close()
 
 		self.scoring.course_score(user_course_views)
+		self.scoring.interests_score(user_interests)
 		return
 
 	def recommendation(self):
 		#print("inside")
-		with open('../data/processed/course_scoring_dict.pickle', 'rb') as handle:
+		with open('../data/processed/course_scoring_dict.pickle', 'rb') as file:
 			#print("opened file")
-			course_scoring_dict = pickle.load(handle)
+			course_scoring_dict = pickle.load(file)
 			#print("completed loading") 
+
+		with open('../data/processed/interests_scoring_dict.pickle', 'rb') as file:
+			interests_scoring_dict = pickle.load(file)
+
 		if self.user_id in course_scoring_dict:
 			#print("user_id exists")
 			print(course_scoring_dict[self.user_id][:5])
 			#print("done")
+		else: 
+			print(interests_scoring_dict[self.user_id][:5])
+		
 		return 
 
 
