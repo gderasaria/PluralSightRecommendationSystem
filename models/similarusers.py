@@ -16,10 +16,10 @@ import pickle
 class SimilarUsers: 
 	
 	def __init__(self, user_id, train_mode):
-		self.user_id = user_id
+		self.user_id = int(user_id)
 		self.train_mode = train_mode
-		self.scoring = Scoring()
-
+		if train_mode:	
+			self.scoring = Scoring()
 
 	def pre_process_data(self,file_path	):
 		"""Loads data from sqlite database to pre-process the data and store it in sqlite format"""
@@ -33,6 +33,8 @@ class SimilarUsers:
 
 		self.scoring.course_score(user_course_views)
 		self.scoring.interests_score(user_interests)
+		self.scoring.assessment_score(user_assessment_scores)
+		
 		return
 
 	def recommendation(self):
@@ -45,12 +47,24 @@ class SimilarUsers:
 		with open('../data/processed/interests_scoring_dict.pickle', 'rb') as file:
 			interests_scoring_dict = pickle.load(file)
 
-		if self.user_id in course_scoring_dict:
+		with open('../data/processed/assessment_scoring_dict.pickle', 'rb') as file:
+			assessment_scoring_dict = pickle.load(file)		
+
+		if self.user_id in assessment_scoring_dict:
+			similar_users_dict = { str(user_id) : score for user_id,score  in assessment_scoring_dict[self.user_id][:5]} 
+			#print(assessment_scoring_dict[self.user_id][:5])
+			return assessment_scoring_dict[self.user_id][:5]	
+
+		elif self.user_id in course_scoring_dict:
 			#print("user_id exists")
-			print(course_scoring_dict[self.user_id][:5])
-			#print("done")
+			similar_users_dict = { str(user_id) : score for user_id,score  in course_scoring_dict[self.user_id][:5]} 
+			#print(course_scoring_dict[self.user_id][:5])
+			return course_scoring_dict[self.user_id][:5]
+			print("done")
 		else: 
-			print(interests_scoring_dict[self.user_id][:5])
+			similar_users_dict = { str(user_id) : score for user_id,score  in interests_scoring_dict[self.user_id][:5]} 
+			#print(interests_scoring_dict[self.user_id][:5])
+			return interests_scoring_dict[self.user_id][:5]
 		
 		return 
 
