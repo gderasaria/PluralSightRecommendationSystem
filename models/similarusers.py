@@ -44,6 +44,7 @@ class SimilarUsers:
 		2) If not, select course score if user has taken any course
 		3) Do interest scores if user not in any course
 		"""
+<<<<<<< HEAD
 		with open(path+'data/processed/assessment_scoring_dict.pickle', 'rb') as file:
 			assessment_scoring_dict = pickle.load(file)				
 
@@ -52,6 +53,16 @@ class SimilarUsers:
 			
 
 		with open(path+'data/processed/interests_scoring_dict.pickle', 'rb') as file:
+=======
+		with open('models/data/processed/assessment_scoring_dict.pickle', 'rb') as file:
+			assessment_scoring_dict = pickle.load(file)				
+
+		with open('models/data/processed/course_scoring_dict.pickle', 'rb') as file:
+			course_scoring_dict = pickle.load(file)
+			
+
+		with open('models/data/processed/interests_scoring_dict.pickle', 'rb') as file:
+>>>>>>> 32a51e01875cf613d48fce7c03727e9e2d3f95f5
 			interests_scoring_dict = pickle.load(file)
 
 		if self.user_id in assessment_scoring_dict:
