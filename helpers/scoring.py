@@ -16,6 +16,7 @@ class Scoring:
 		U = pairwise_distances(U, metric='cosine')
 		U = pd.DataFrame(U, index = data_frame.index,\
 						  columns = data_frame.index)
+
 		return U 
 
 	def get_co_occurrence(self,dataframe,H):
@@ -48,32 +49,31 @@ class Scoring:
 		"""
 		Computes user similarity based on assessment scores 
 		"""
+		
 		user_assessment = pd.pivot_table(user_assessment_data, index = "user_handle" , columns= "assessment_tag" ,\
                                                   values="user_assessment_score")
 		user_assessment = user_assessment.apply(lambda x: x / np.sqrt(np.nansum(np.square(x))))
 		user_assessment = user_assessment.replace(np.nan,0)
 
-		offset = 10**-10
+		offset = 0.005 #small offset to avoid dividing by zero
 		user_assessment = self.perform_svd(user_assessment, k =50)
-		
+
+		#Get a co_occurence matrix to do a weighted similarity scoring. 
 		temp_table = pd.pivot_table(user_assessment_data, index = "user_handle", columns = "assessment_tag" ,\
 									  values = "user_assessment_date" ,  
 									  aggfunc = len )
-		H = 3 
 		co_occurence = temp_table.dot(temp_table.T)
 		co_occurence = co_occurence.replace(np.nan,0)
-		co_occurence = co_occurence.replace(0,offset)
-		co_occurence = co_occurence/H
-		co_occurence[co_occurence > 1] = 1
+		co_occurence[co_occurence > 1] = 1 
+		co_occurence += offset
 
 		user_assessment = user_assessment.div(co_occurence)
-		
-		
-		interests_scoring_dict = self.generate_dict(user_assessment)
-		
-		#print(interests_scoring_dict[7487][:5])
-		with open("../data/processed/assessment_scoring_dict.pickle",'wb') as file:
-			pickle.dump(interests_scoring_dict, file, protocol = pickle.HIGHEST_PROTOCOL)
+
+		assessment_scoring_dict = self.generate_dict(user_assessment)
+		print("assessment_score done")
+
+		with open("../models/data/processed/assessment_scoring_dict.pickle",'wb') as file:
+			pickle.dump(assessment_scoring_dict, file, protocol = pickle.HIGHEST_PROTOCOL)
 
 
 	def interests_score(self,user_interests):
@@ -91,9 +91,9 @@ class Scoring:
 		interests_co_occurence = self.get_co_occurrence(user_interests, 8)
 		user_similarity = user_similarity.div(interests_co_occurence)	
 		interests_scoring_dict = self.generate_dict(user_similarity)
-		
-		with open("../data/processed/interests_scoring_dict.pickle",'wb') as file:
-			pickle.dump(interests_scoring_dict,file, protocol = pickle.HIGHEST_PROTOCOL)
+
+		with open("../models/data/processed/interests_scoring_dict.pickle",'wb') as file:
+			pickle.dump(interests_scoring_dict, file, protocol = pickle.HIGHEST_PROTOCOL)
 
 	def course_score(self,user_course_views):
 		
@@ -113,7 +113,5 @@ class Scoring:
 		user_similarity = user_similarity.div(course_co_occurence)	
 		course_scoring_dict = self.generate_dict(user_similarity)
 		
- 		#conn  = sqlite3.connect("../data/processed/course_scoring_dict.sqlite")
- 		#c = conn.cursor()
-		with open("../data/processed/course_scoring_dict.pickle",'wb') as file:
+		with open("../models/data/processed/course_scoring_dict.pickle",'wb') as file:
 			pickle.dump(course_scoring_dict,file, protocol = pickle.HIGHEST_PROTOCOL)

@@ -38,32 +38,30 @@ class SimilarUsers:
 		return
 
 	def recommendation(self):
-		#print("inside")
-		with open('../data/processed/course_scoring_dict.pickle', 'rb') as file:
-			#print("opened file")
-			course_scoring_dict = pickle.load(file)
-			#print("completed loading") 
+		"""
+		Recommends similar user based on the following priority:
+		1) select assessment score if user has given assessment
+		2) If not, select course score if user has taken any course
+		3) Do interest scores if user not in any course
+		"""
+		with open('data/processed/assessment_scoring_dict.pickle', 'rb') as file:
+			assessment_scoring_dict = pickle.load(file)				
 
-		with open('../data/processed/interests_scoring_dict.pickle', 'rb') as file:
+		with open('data/processed/course_scoring_dict.pickle', 'rb') as file:
+			course_scoring_dict = pickle.load(file)
+			
+
+		with open('data/processed/interests_scoring_dict.pickle', 'rb') as file:
 			interests_scoring_dict = pickle.load(file)
 
-		with open('../data/processed/assessment_scoring_dict.pickle', 'rb') as file:
-			assessment_scoring_dict = pickle.load(file)		
-
 		if self.user_id in assessment_scoring_dict:
-			similar_users_dict = { str(user_id) : score for user_id,score  in assessment_scoring_dict[self.user_id][:5]} 
-			#print(assessment_scoring_dict[self.user_id][:5])
+			
 			return assessment_scoring_dict[self.user_id][:5]	
 
-		elif self.user_id in course_scoring_dict:
-			#print("user_id exists")
-			similar_users_dict = { str(user_id) : score for user_id,score  in course_scoring_dict[self.user_id][:5]} 
-			#print(course_scoring_dict[self.user_id][:5])
+		if self.user_id in course_scoring_dict:
 			return course_scoring_dict[self.user_id][:5]
-			print("done")
+
 		else: 
-			similar_users_dict = { str(user_id) : score for user_id,score  in interests_scoring_dict[self.user_id][:5]} 
-			#print(interests_scoring_dict[self.user_id][:5])
 			return interests_scoring_dict[self.user_id][:5]
 		
 		return 
