@@ -42,7 +42,7 @@ from the root directory type the following command in terminal
 python models/train.py
 ```
 
-###Testing
+### Testing
 
 For testing run a seperate terminal for client and server.
 The input can be changed from models/data/user.json.
@@ -60,6 +60,6 @@ python test.py
 ```
 
 
-###Results
+### Results
 
 The results can be seen in models/data/results.json
