@@ -37,21 +37,21 @@ class SimilarUsers:
 		
 		return
 
-	def recommendation(self):
+	def recommendation(self,path):
 		"""
 		Recommends similar user based on the following priority:
 		1) select assessment score if user has given assessment
 		2) If not, select course score if user has taken any course
 		3) Do interest scores if user not in any course
 		"""
-		with open('data/processed/assessment_scoring_dict.pickle', 'rb') as file:
+		with open(path+'data/processed/assessment_scoring_dict.pickle', 'rb') as file:
 			assessment_scoring_dict = pickle.load(file)				
 
-		with open('data/processed/course_scoring_dict.pickle', 'rb') as file:
+		with open(path+'data/processed/course_scoring_dict.pickle', 'rb') as file:
 			course_scoring_dict = pickle.load(file)
 			
 
-		with open('data/processed/interests_scoring_dict.pickle', 'rb') as file:
+		with open(path+'data/processed/interests_scoring_dict.pickle', 'rb') as file:
 			interests_scoring_dict = pickle.load(file)
 
 		if self.user_id in assessment_scoring_dict:
